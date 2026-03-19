@@ -1,0 +1,23 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./frontend:/app/frontend
+      - downloads:/app/downloads
+      - temp:/app/temp
+    environment:
+      - DOWNLOADS_DIR=/app/downloads
+      - TEMP_DIR=/app/temp
+    restart: unless-stopped
+
+volumes:
+  downloads:
+  temp:

@@ -1,0 +1,166 @@
+<!-- frontend/index.html -->
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube to MP3 Converter</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Instalação do HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <!-- Extensão JSON (Necessária pois o FastAPI/Pydantic no seu backend espera JSON) -->
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+    <!-- Extensão Idiomorph: Algoritmo que mescla as atualizações do DOM sem cintilar e preservando animações -->
+    <script src="https://unpkg.com/idiomorph/dist/idiomorph-ext.umd.js"></script>
+  </head>
+  <body hx-ext="json-enc, morph">
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="logo">
+          <svg
+            class="logo-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M9 18V6L21 12L9 18Z" fill="currentColor" />
+          </svg>
+          <h1>YouTube <span class="accent">to MP3</span></h1>
+        </div>
+        <p class="subtitle">Converta seus vídeos favoritos em áudio MP3</p>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Left Panel - Input Section -->
+        <section class="input-section">
+          <div class="input-wrapper">
+            <div class="input-group">
+              <!-- O atributo 'name' é obrigatório para o HTMX conseguir serializar o valor do input -->
+              <input
+                type="text"
+                id="urlInput"
+                name="url"
+                class="url-input"
+                placeholder="Cole o link do YouTube aqui..."
+                autocomplete="off"
+              />
+              <button id="addBtn" class="add-btn" title="Adicionar link">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="input-hint">
+              Pressione Enter ou clique no botão para adicionar
+            </p>
+          </div>
+
+          <div class="action-buttons">
+            <button id="convertBtn" class="btn btn-primary btn-convert">
+              <svg
+                class="btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 12L20 12M20 12L14 6M20 12L14 18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>CONVERTER</span>
+            </button>
+            <button id="clearBtn" class="btn btn-secondary btn-clear">
+              <svg
+                class="btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M19 7L5 7M10 11V17M14 11V17M4 7L5 7M5 7L6 19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19L19 7M5 7H19M9 7V4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V7"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>LIMPAR</span>
+            </button>
+          </div>
+
+          <!-- Status Info -->
+          <div class="status-info" id="statusInfo">
+            <div class="status-item">
+              <span class="status-label">Pendentes:</span>
+              <span class="status-value" id="pendingCount">0</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">Convertidos:</span>
+              <span class="status-value" id="completedCount">0</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Panel - Links List -->
+        <section class="links-section">
+          <div class="links-header">
+            <h2>Links Adicionados</h2>
+            <span class="links-count" id="linksCount">0</span>
+          </div>
+          <!-- O hx-swap="morph:innerHTML" instrui o HTMX a usar o Idiomorph para atualizar apenas as modificações da lista -->
+          <div class="links-list" id="linksList" hx-swap="morph:innerHTML">
+            <div class="empty-state" id="emptyState">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <p>Nenhum link adicionado</p>
+              <span>Cole uma URL do YouTube para começar</span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>Feito com ❤️ usando Python + FastAPI + JavaScript</p>
+      </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
