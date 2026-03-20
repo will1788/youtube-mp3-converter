@@ -1,0 +1,6 @@
+# Ignorar pasta completa
+for github/
+
+# ignorar conteúdo interno da pasta
+backend/downloads/*
+!backend/downloads/.gitkeep
